@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 核心权限：允许访问用户选择的任意文件和文件夹 -->
+	<!-- 这是动态权限，用户选择什么文件/文件夹，应用就能访问什么 -->
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+	
+	<!-- App Sandbox（必需） -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	
+	<!-- 可选：允许网络访问（如果将来需要从网络加载图片） -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+</dict>
+</plist>

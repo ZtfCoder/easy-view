@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/zhangtengfei/Desktop/code/easyView/build/easyView.app/Contents/MacOS/easyView'
+relocations:     []
+...

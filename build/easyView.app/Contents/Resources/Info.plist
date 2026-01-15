@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 应用基本信息 -->
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	
+	<!-- 权限说明（会在首次请求权限时显示） -->
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>EasyView 需要访问下载文件夹以浏览和显示图片文件。</string>
+	
+	<key>NSPicturesFolderUsageDescription</key>
+	<string>EasyView 需要访问图片文件夹以浏览和显示图片文件。</string>
+	
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>EasyView 需要访问桌面文件夹以浏览和显示图片文件。</string>
+	
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>EasyView 需要访问文稿文件夹以浏览和显示图片文件。</string>
+	
+	<!-- 支持的文档类型（图片查看器） -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Image</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<!-- 通用图片类型 -->
+				<string>public.image</string>
+				<!-- 常见格式 -->
+				<string>public.jpeg</string>
+				<string>public.png</string>
+				<string>com.compuserve.gif</string>
+				<string>public.tiff</string>
+				<string>com.microsoft.bmp</string>
+				<string>public.heic</string>
+				<string>org.webmproject.webp</string>
+				<!-- SVG -->
+				<string>public.svg-image</string>
+			</array>
+			<key>NSExportableTypes</key>
+			<array>
+				<string>public.image</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- 应用类别 -->
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.photography</string>
+	
+	<!-- 支持通过双击打开文件 -->
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+</dict>
+</plist>
