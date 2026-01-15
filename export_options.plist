@@ -4,15 +4,11 @@
 <dict>
 	<key>method</key>
 	<string>mac-application</string>
-	<key>teamID</key>
-	<string></string>
 	<key>signingStyle</key>
-	<string>manual</string>
+	<string>automatic</string>
+	<key>signingCertificate</key>
+	<string>-</string>
 	<key>stripSwiftSymbols</key>
 	<true/>
-	<key>uploadSymbols</key>
-	<false/>
-	<key>compileBitcode</key>
-	<false/>
 </dict>
 </plist>

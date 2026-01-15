@@ -7,9 +7,9 @@ final class ImageCache {
     private let cache = NSCache<NSString, NSImage>()
 
     private init() {
-        // Optional: tune limits
-        cache.countLimit = 100
-        cache.totalCostLimit = 1024 * 1024 * 200 // 200 MB-ish
+        // 限制缓存：最多 10 张图片，最大约 50MB
+        cache.countLimit = 10
+        cache.totalCostLimit = 1024 * 1024 * 50 // 50 MB
     }
 
     func image(forKey key: NSString) -> NSImage? {
@@ -17,9 +17,9 @@ final class ImageCache {
     }
 
     func setImage(_ image: NSImage, forKey key: NSString) {
-        // Rough cost estimate based on pixel count
+        // 准确计算内存占用：width * height * 4 bytes (RGBA)
         let size = image.size
-        let cost = Int(size.width * size.height)
+        let cost = Int(size.width * size.height * 4)
         cache.setObject(image, forKey: key, cost: cost)
     }
 

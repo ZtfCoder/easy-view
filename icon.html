@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>EasyView macOS Icon Generator</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            color: white;
+        }
+        
+        h1 { margin-bottom: 10px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        
+        .preview-section {
+            display: flex;
+            gap: 40px;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .preview-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .preview-label {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        /* macOS 图标容器 - 用于导出 */
+        .icon-wrapper {
+            position: relative;
+        }
+        
+        /* macOS Big Sur 风格图标 */
+        .macos-icon {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 圆角矩形背景 - macOS 标准 */
+        .icon-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #3d3d3d 0%, #1a1a1a 100%);
+            border-radius: 22.5%;
+            box-shadow: 
+                0 0 0 0.5px rgba(255,255,255,0.1),
+                0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .icon-content {
+            position: relative;
+            width: 75%;
+            height: 75%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 图片框 */
+        .frame {
+            width: 100%;
+            height: 80%;
+            background: linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%);
+            border-radius: 8%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 4px 15px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        
+        /* 图片内容 */
+        .image-area {
+            width: 88%;
+            height: 85%;
+            background: linear-gradient(180deg, #5ba3e0 0%, #87ceeb 40%, #7ec8a3 100%);
+            border-radius: 5%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sun {
+            position: absolute;
+            width: 15%;
+            height: 0;
+            padding-bottom: 15%;
+            background: linear-gradient(145deg, #ffe066, #ffb800);
+            border-radius: 50%;
+            top: 15%;
+            right: 18%;
+            box-shadow: 0 0 20px rgba(255, 200, 0, 0.5);
+        }
+        
+        .mountain1 {
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 0;
+            height: 0;
+            border-left: 25% solid transparent;
+            border-right: 25% solid transparent;
+            border-bottom: 45% solid #4a9a6a;
+        }
+        
+        .mountain2 {
+            position: absolute;
+            bottom: 0;
+            right: 8%;
+            width: 0;
+            height: 0;
+            border-left: 30% solid transparent;
+            border-right: 30% solid transparent;
+            border-bottom: 60% solid #2d7a4a;
+        }
+        
+        /* 放大镜/查看图标 */
+        .magnifier {
+            position: absolute;
+            bottom: -12%;
+            right: -8%;
+            width: 35%;
+            height: 0;
+            padding-bottom: 35%;
+            background: linear-gradient(145deg, #0a84ff, #0066cc);
+            border-radius: 50%;
+            box-shadow: 
+                0 4px 15px rgba(10, 132, 255, 0.5),
+                inset 0 2px 0 rgba(255,255,255,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .magnifier-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 55%;
+            height: 55%;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .magnifier-glass {
+            width: 60%;
+            height: 60%;
+            border: 3px solid #333;
+            border-radius: 50%;
+            position: relative;
+        }
+        
+        .magnifier-handle {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            width: 4px;
+            height: 12px;
+            background: #333;
+            transform: rotate(-45deg);
+            border-radius: 2px;
+        }
+        
+        /* 尺寸变体 */
+        .size-1024 { width: 1024px; height: 1024px; }
+        .size-512 { width: 512px; height: 512px; }
+        .size-256 { width: 256px; height: 256px; }
+        .size-128 { width: 128px; height: 128px; }
+        .size-64 { width: 64px; height: 64px; }
+        .size-32 { width: 32px; height: 32px; }
+        .size-16 { width: 16px; height: 16px; }
+        
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .export-btn {
+            padding: 12px 24px;
+            font-size: 14px;
+            background: linear-gradient(145deg, #0a84ff, #0066cc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .export-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 20px rgba(10, 132, 255, 0.4);
+        }
+        
+        .export-btn.all {
+            background: linear-gradient(145deg, #30d158, #28a745);
+            padding: 15px 40px;
+            font-size: 16px;
+        }
+        
+        .export-btn.all:hover {
+            box-shadow: 0 5px 20px rgba(48, 209, 88, 0.4);
+        }
+        
+        .info {
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        /* 隐藏的大尺寸图标用于导出 */
+        .export-icons {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>EasyView Icon Generator</h1>
+    <p class="subtitle">macOS App Icon Set (符合 Apple Human Interface Guidelines)</p>
+    
+    <!-- 预览区域 -->
+    <div class="preview-section">
+        <div class="preview-item">
+            <div class="macos-icon size-128">
+                <div class="icon-bg"></div>
+                <div class="icon-content">
+                    <div class="frame">
+                        <div class="image-area">
+                            <div class="sun"></div>
+                            <div class="mountain1"></div>
+                            <div class="mountain2"></div>
+                        </div>
+                        <div class="magnifier">
+                            <div class="magnifier-inner">
+                                <div class="magnifier-glass">
+                                    <div class="magnifier-handle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="preview-label">128pt</span>
+        </div>
+        
+        <div class="preview-item">
+            <div class="macos-icon size-64">
+                <div class="icon-bg"></div>
+                <div class="icon-content">
+                    <div class="frame">
+                        <div class="image-area">
+                            <div class="sun"></div>
+                            <div class="mountain1"></div>
+                            <div class="mountain2"></div>
+                        </div>
+                        <div class="magnifier">
+                            <div class="magnifier-inner">
+                                <div class="magnifier-glass">
+                                    <div class="magnifier-handle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="preview-label">64pt</span>
+        </div>
+        
+        <div class="preview-item">
+            <div class="macos-icon size-32">
+                <div class="icon-bg"></div>
+                <div class="icon-content">
+                    <div class="frame">
+                        <div class="image-area">
+                            <div class="sun"></div>
+                            <div class="mountain1"></div>
+                            <div class="mountain2"></div>
+                        </div>
+                        <div class="magnifier">
+                            <div class="magnifier-inner">
+                                <div class="magnifier-glass">
+                                    <div class="magnifier-handle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="preview-label">32pt</span>
+        </div>
+        
+        <div class="preview-item">
+            <div class="macos-icon size-16">
+                <div class="icon-bg"></div>
+                <div class="icon-content">
+                    <div class="frame">
+                        <div class="image-area">
+                            <div class="sun"></div>
+                            <div class="mountain1"></div>
+                            <div class="mountain2"></div>
+                        </div>
+                        <div class="magnifier">
+                            <div class="magnifier-inner">
+                                <div class="magnifier-glass">
+                                    <div class="magnifier-handle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="preview-label">16pt</span>
+        </div>
+    </div>
+    
+    <!-- 导出按钮 -->
+    <div class="btn-group">
+        <button class="export-btn all" onclick="exportAll()">📦 导出全部尺寸</button>
+    </div>
+    
+    <div class="btn-group">
+        <button class="export-btn" onclick="exportSize(1024)">1024px</button>
+        <button class="export-btn" onclick="exportSize(512)">512px</button>
+        <button class="export-btn" onclick="exportSize(256)">256px</button>
+        <button class="export-btn" onclick="exportSize(128)">128px</button>
+        <button class="export-btn" onclick="exportSize(64)">64px</button>
+        <button class="export-btn" onclick="exportSize(32)">32px</button>
+        <button class="export-btn" onclick="exportSize(16)">16px</button>
+    </div>
+    
+    <p class="info">
+        macOS 应用图标需要以下尺寸：<br>
+        16x16, 32x32, 64x64, 128x128, 256x256, 512x512, 1024x1024<br>
+        (包含 @1x 和 @2x 版本)
+    </p>
+    
+    <!-- 隐藏的导出用图标 -->
+    <div class="export-icons">
+        <div id="icon-1024" class="macos-icon size-1024">
+            <div class="icon-bg"></div>
+            <div class="icon-content">
+                <div class="frame">
+                    <div class="image-area">
+                        <div class="sun"></div>
+                        <div class="mountain1"></div>
+                        <div class="mountain2"></div>
+                    </div>
+                    <div class="magnifier">
+                        <div class="magnifier-inner">
+                            <div class="magnifier-glass">
+                                <div class="magnifier-handle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const sizes = [1024, 512, 256, 128, 64, 32, 16];
+        
+        async function captureIcon() {
+            const icon = document.getElementById('icon-1024');
+            return await html2canvas(icon, {
+                width: 1024,
+                height: 1024,
+                scale: 1,
+                backgroundColor: null,
+                logging: false
+            });
+        }
+        
+        function resizeCanvas(sourceCanvas, targetSize) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(sourceCanvas, 0, 0, targetSize, targetSize);
+            return canvas;
+        }
+        
+        async function exportSize(size) {
+            const sourceCanvas = await captureIcon();
+            const canvas = resizeCanvas(sourceCanvas, size);
+            
+            const link = document.createElement('a');
+            link.download = `icon_${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        async function exportAll() {
+            const sourceCanvas = await captureIcon();
+            
+            for (const size of sizes) {
+                const canvas = resizeCanvas(sourceCanvas, size);
+                const link = document.createElement('a');
+                link.download = `icon_${size}x${size}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 稍微延迟避免浏览器阻止多次下载
+                await new Promise(r => setTimeout(r, 300));
+            }
+            
+            alert('全部尺寸已导出！\n\n将这些图片添加到 Xcode 的 Assets.xcassets/AppIcon.appiconset 中');
+        }
+    </script>
+</body>
+</html>

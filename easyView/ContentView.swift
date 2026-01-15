@@ -429,18 +429,50 @@ struct ContentView: View {
                 print("  📁 文件夹包含 \(imagesInDir.count) 张图片")
                 imageURLsToLoad.append(contentsOf: imagesInDir)
             } else {
-                // 单个文件 - 先将文件本身添加到列表
-                imageURLsToLoad.append(url)
-                
+                // 单个文件
                 // 记录第一个选择的文件
                 if selectedFileURL == nil {
                     selectedFileURL = url
                 }
                 
                 // 启动并保持对选中文件的访问权限
-                if url.startAccessingSecurityScopedResource() {
+                let hasFileAccess = url.startAccessingSecurityScopedResource()
+                if hasFileAccess {
                     urlsToKeepAccess.append(url)
                     print("  ✅ 已保持文件访问权限: \(url.lastPathComponent)")
+                }
+                
+                // 尝试获取父目录中的其他图片
+                let parentDirectory = url.deletingLastPathComponent()
+                print("  📂 尝试访问父目录: \(parentDirectory.path)")
+                
+                // 先尝试启动父目录的安全作用域访问
+                let hasParentAccess = parentDirectory.startAccessingSecurityScopedResource()
+                if hasParentAccess {
+                    urlsToKeepAccess.append(parentDirectory)
+                    print("  ✅ 已获取父目录安全作用域访问权限")
+                }
+                
+                // 无论是否获得安全作用域访问，都尝试读取目录
+                // （某些情况下即使 startAccessingSecurityScopedResource 返回 false，目录仍可读）
+                let imagesInDir = getImagesFromDirectory(parentDirectory)
+                
+                if imagesInDir.count > 1 {
+                    print("  📁 父目录包含 \(imagesInDir.count) 张图片")
+                    imageURLsToLoad.append(contentsOf: imagesInDir)
+                } else if imagesInDir.count == 1 {
+                    // 目录中只有一张图片
+                    print("  📁 父目录只有 1 张图片")
+                    imageURLsToLoad.append(contentsOf: imagesInDir)
+                } else {
+                    // 无法读取父目录，标记需要请求权限
+                    print("  ⚠️ 无法读取父目录，将请求用户授权")
+                    imageURLsToLoad.append(url)
+                    
+                    // 延迟请求用户授权访问文件夹
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.requestFolderAccess(for: parentDirectory, selectedFile: url)
+                    }
                 }
             }
         }
@@ -542,7 +574,9 @@ struct ContentView: View {
         let key = url.absoluteString as NSString
         if let cached = imageCache.image(forKey: key) {
             DispatchQueue.main.async {
-                loadedImages[index] = cached
+                // 只保留当前和相邻的图片引用，清理其他的
+                self.cleanupLoadedImages(keepingAround: index)
+                self.loadedImages[index] = cached
             }
             return
         }
@@ -551,9 +585,28 @@ struct ContentView: View {
             if let data = try? Data(contentsOf: url), let ns = NSImage(data: data) {
                 imageCache.setImage(ns, forKey: key)
                 DispatchQueue.main.async {
-                    loadedImages[index] = ns
+                    self.cleanupLoadedImages(keepingAround: index)
+                    self.loadedImages[index] = ns
                 }
             }
+        }
+    }
+    
+    // 清理 loadedImages，只保留当前索引附近的图片
+    private func cleanupLoadedImages(keepingAround index: Int) {
+        let totalCount = imageURLs.count
+        guard totalCount > 0 else { return }
+        
+        let keepRange: Set<Int> = [
+            (index - 1 + totalCount) % totalCount,
+            index,
+            (index + 1) % totalCount
+        ]
+        
+        // 移除不在保留范围内的图片
+        let keysToRemove = loadedImages.keys.filter { !keepRange.contains($0) }
+        for key in keysToRemove {
+            loadedImages.removeValue(forKey: key)
         }
     }
 
@@ -564,6 +617,60 @@ struct ContentView: View {
         let right = (currentIndex + 1) % imageURLs.count
         loadImage(at: left)
         loadImage(at: right)
+    }
+    
+    // 请求用户授权访问文件夹（当无法自动获取父目录权限时）
+    private func requestFolderAccess(for directory: URL, selectedFile: URL) {
+        let alert = NSAlert()
+        alert.messageText = "需要访问文件夹"
+        alert.informativeText = "要浏览「\(directory.lastPathComponent)」文件夹中的所有图片，需要您授权访问该文件夹。\n\n点击「选择文件夹」后，请在弹出的对话框中选择该文件夹。"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "选择文件夹")
+        alert.addButton(withTitle: "仅查看当前图片")
+        
+        let response = alert.runModal()
+        
+        if response == .alertFirstButtonReturn {
+            // 用户选择授权，打开文件夹选择对话框
+            let panel = NSOpenPanel()
+            panel.canChooseDirectories = true
+            panel.canChooseFiles = false
+            panel.allowsMultipleSelection = false
+            panel.directoryURL = directory
+            panel.message = "请选择要浏览的文件夹"
+            panel.prompt = "选择"
+            
+            panel.begin { result in
+                guard result == .OK, let url = panel.url else { return }
+                
+                // 用户选择了文件夹，重新加载
+                print("📂 用户授权访问文件夹: \(url.path)")
+                
+                // 启动安全作用域访问
+                if url.startAccessingSecurityScopedResource() {
+                    self.securityScopedURLs.append(url)
+                }
+                
+                // 获取文件夹中的所有图片
+                let imagesInDir = self.getImagesFromDirectory(url)
+                
+                if !imagesInDir.isEmpty {
+                    // 找到原来选中的文件在新列表中的位置
+                    let selectedIndex = imagesInDir.firstIndex(of: selectedFile) ?? 0
+                    
+                    // 更新图片列表
+                    self.imageURLs = imagesInDir
+                    self.loadedImages.removeAll()
+                    self.currentIndex = selectedIndex
+                    self.loadImage(at: selectedIndex)
+                    self.preloadNeighbors()
+                    
+                    print("✅ 已加载 \(imagesInDir.count) 张图片，当前位置: \(selectedIndex + 1)")
+                }
+            }
+        } else {
+            print("ℹ️ 用户选择仅查看当前图片")
+        }
     }
     
     // 释放所有保持的安全作用域访问权限
