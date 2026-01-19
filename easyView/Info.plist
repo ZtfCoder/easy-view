@@ -16,9 +16,9 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.1</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	
 	<!-- 权限说明（会在首次请求权限时显示） -->
 	<key>NSDownloadsFolderUsageDescription</key>

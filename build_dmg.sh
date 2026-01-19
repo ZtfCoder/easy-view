@@ -18,7 +18,7 @@ echo ""
 
 # 配置
 APP_NAME="easyView"
-VERSION="1.0"
+VERSION="1.1"
 SCHEME="easyView"
 BUILD_DIR="build"
 DMG_DIR="dmg_temp"
